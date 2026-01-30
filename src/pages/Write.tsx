@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { blogApi } from '@/lib/api';
@@ -36,6 +36,7 @@ export default function Write() {
 
   const navigate = useNavigate();
   const { toast } = useToast();
+  const hasPopulatedForm = useRef(false);
 
   // Fetch blog data if in edit mode
   const { data: existingBlog, isLoading: isLoadingBlog } = useQuery({
@@ -47,19 +48,27 @@ export default function Write() {
       throw new Error(response.error);
     },
     enabled: isEditMode && !!slug,
+    refetchOnWindowFocus: false, // Prevent refetch when switching tabs
+    refetchOnMount: false, // Prevent refetch on component remount
   });
 
-  // Populate form when blog data is loaded
+  // Populate form when blog data is loaded (only once)
   useEffect(() => {
-    if (existingBlog) {
+    if (existingBlog && !hasPopulatedForm.current) {
       setTitle(existingBlog.title);
       setDescription(existingBlog.description);
       setContent(existingBlog.content);
       setTags(existingBlog.tags);
       setCoverImage(existingBlog.coverImage || '');
       setStatus(existingBlog.status);
+      hasPopulatedForm.current = true;
     }
   }, [existingBlog]);
+
+  // Reset the flag when slug changes (navigating to different blog)
+  useEffect(() => {
+    hasPopulatedForm.current = false;
+  }, [slug]);
 
   const titleError = title.trim().length > 0 && title.trim().length < MIN_TITLE_LENGTH;
   const descriptionError = description.trim().length > 0 && description.trim().length < MIN_DESCRIPTION_LENGTH;
