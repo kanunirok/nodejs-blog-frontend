@@ -212,6 +212,15 @@ export interface AuthResponse {
   };
 }
 
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  password: string;
+}
+
 export const authApi = {
   login: (data: LoginRequest) =>
     apiRequest<AuthResponse>('/auth/login', {
@@ -221,6 +230,18 @@ export const authApi = {
 
   register: (data: RegisterRequest) =>
     apiRequest<{ message: string }>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  forgotPassword: (data: ForgotPasswordRequest) =>
+    apiRequest<{ message: string }>('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  resetPassword: (data: ResetPasswordRequest) =>
+    apiRequest<{ message: string }>('/auth/reset-password', {
       method: 'POST',
       body: JSON.stringify(data),
     }),

@@ -23,8 +23,9 @@ export function Header() {
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-2">
-          <span className="font-serif text-2xl font-semibold tracking-tight text-foreground">
-            Mediuum
+          <span className="font-serif text-2xl font-semibold tracking-tight text-foreground flex items-center justify-center gap-2">
+            Meowwdium
+            <img src="/paws.png" alt="Meowwdium" className="w-8 h-8 inline-block align-middle" />
           </span>
         </Link>
 

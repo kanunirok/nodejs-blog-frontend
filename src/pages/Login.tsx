@@ -71,7 +71,10 @@ export default function Login() {
       <div className="w-full max-w-sm space-y-8">
         <div className="text-center">
           <Link to="/" className="inline-block">
-            <h1 className="font-serif text-3xl font-bold text-foreground">Mediuum</h1>
+            <h1 className="font-serif text-3xl font-bold text-foreground flex items-center justify-center gap-2">
+              Meowwdium
+              <img src="/paws.png" alt="Meowwdium" className="w-8 h-8 inline-block align-middle" />
+            </h1>
           </Link>
           <h2 className="mt-6 text-2xl font-semibold text-foreground">Welcome back</h2>
           <p className="mt-2 text-muted-foreground">
@@ -105,7 +108,15 @@ export default function Login() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>Password</FormLabel>
+                    <Link 
+                      to="/forgot-password" 
+                      className="text-sm text-primary hover:underline"
+                    >
+                      Forgot password?
+                    </Link>
+                  </div>
                   <FormControl>
                     <Input
                       type="password"
