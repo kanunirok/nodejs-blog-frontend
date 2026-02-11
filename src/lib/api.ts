@@ -460,3 +460,199 @@ export const blogApi = {
     return { data: tags };
   },
 };
+
+// Comment API
+export interface CommentAuthor {
+  id: string;
+  name: string;
+  username: string;
+  avatar: string | null;
+}
+
+export interface Comment {
+  id: string;
+  author: CommentAuthor;
+  content: string;
+  depth: number;
+  status: 'active' | 'pending_review' | 'hidden' | 'deleted';
+  spam_report_count: number;
+  is_auto_flagged?: boolean;
+  createdAt: string;
+  updatedAt: string;
+  canReply: boolean;
+  replies: Comment[];
+  moderated_by?: {
+    id: string;
+    name: string;
+    username: string;
+  };
+  moderated_at?: string;
+  moderation_reason?: string;
+}
+
+export interface CommentsResponse {
+  comments: Comment[];
+  pagination: PaginationInfo;
+}
+
+export interface CreateCommentRequest {
+  content: string;
+}
+
+export interface ReplyCommentRequest {
+  content: string;
+}
+
+export interface ReportCommentRequest {
+  reason: 'spam' | 'offensive' | 'harassment' | 'other';
+}
+
+export const commentApi = {
+  /**
+   * Get all comments for a blog post (nested tree structure)
+   * GET /api/blogs/:slug/comments
+   */
+  getComments: async (slug: string, page = 1, limit = 50) => {
+    const response = await apiRequest<Comment[]>(
+      `/api/blogs/${slug}/comments?page=${page}&limit=${limit}`
+    );
+    
+    if (response.error) {
+      return { error: response.error };
+    }
+
+    // Get full response with pagination
+    const token = localStorage.getItem('auth_token');
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    try {
+      const fullResponse = await fetch(
+        `${API_BASE_URL}/api/blogs/${slug}/comments?page=${page}&limit=${limit}`,
+        { headers }
+      );
+
+      if (fullResponse.status === 429) {
+        const retryAfterHeader = fullResponse.headers.get('Retry-After');
+        const retryAfter = retryAfterHeader ? parseInt(retryAfterHeader, 10) : undefined;
+        if (rateLimitHandler) {
+          rateLimitHandler(retryAfter);
+        }
+        return {
+          error: 'Too many requests. Please slow down and try again.',
+        };
+      }
+
+      const responseData: BackendResponse<Comment[]> = await fullResponse.json().catch(() => ({
+        success: false,
+        message: 'Invalid response format',
+      }));
+
+      if (!fullResponse.ok || !responseData.success) {
+        const errorMessage = 
+          (typeof responseData.message === 'string' ? responseData.message : null) ||
+          (typeof responseData.error === 'string' ? responseData.error : null) ||
+          `Error: ${fullResponse.status}`;
+        return {
+          error: errorMessage,
+        };
+      }
+
+      return {
+        data: {
+          comments: responseData.data || [],
+          pagination: responseData.pagination || {
+            page,
+            limit,
+            total: 0,
+            pages: 0,
+          },
+        },
+      };
+    } catch (error) {
+      return { error: 'Network error. Please try again.' };
+    }
+  },
+
+  /**
+   * Create a new top-level comment
+   * POST /api/blogs/:slug/comments
+   */
+  createComment: async (slug: string, data: CreateCommentRequest) => {
+    const response = await apiRequest<Comment>(`/api/blogs/${slug}/comments`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    
+    if (response.error) {
+      return { error: response.error };
+    }
+
+    return {
+      data: response.data!,
+    };
+  },
+
+  /**
+   * Reply to an existing comment
+   * POST /api/comments/:commentId/reply
+   */
+  replyToComment: async (commentId: string, data: ReplyCommentRequest) => {
+    const response = await apiRequest<Comment>(`/api/comments/${commentId}/reply`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    
+    if (response.error) {
+      return { error: response.error };
+    }
+
+    return {
+      data: response.data!,
+    };
+  },
+
+  /**
+   * Delete own comment (soft delete)
+   * DELETE /api/comments/:commentId
+   */
+  deleteComment: async (commentId: string) => {
+    const response = await apiRequest<{ message: string }>(`/api/comments/${commentId}`, {
+      method: 'DELETE',
+    });
+    
+    if (response.error) {
+      return { error: response.error };
+    }
+
+    return {
+      data: response.data!,
+    };
+  },
+
+  /**
+   * Report a comment as spam/offensive
+   * POST /api/comments/:commentId/report
+   */
+  reportComment: async (commentId: string, data: ReportCommentRequest) => {
+    const response = await apiRequest<{
+      status: string;
+      spam_report_count: number;
+    }>(`/api/comments/${commentId}/report`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    
+    if (response.error) {
+      return { error: response.error };
+    }
+
+    return {
+      data: response.data!,
+    };
+  },
+};

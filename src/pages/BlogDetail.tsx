@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
+import BlogComment from '@/components/BlogComment';
 import { Eye, Calendar, User, Edit } from 'lucide-react';
 
 function formatDate(dateString: string): string {
@@ -86,8 +87,8 @@ export default function BlogDetail() {
         <header className="mb-12">
           <div className="flex items-start justify-between gap-4 mb-6">
             <h1 className="font-serif text-4xl md:text-5xl font-bold leading-tight text-foreground flex-1">
-              {blog.title}
-            </h1>
+            {blog.title}
+          </h1>
             {isOwner && (
               <Button asChild variant="outline" size="sm" className="gap-2 shrink-0">
                 <Link to={`/write/${blog.slug}`}>
@@ -169,12 +170,7 @@ export default function BlogDetail() {
         )}
 
         <section className="mt-16 pt-8 border-t border-border">
-          <h2 className="font-serif text-2xl font-semibold mb-6">Comments</h2>
-          <div className="bg-muted/50 rounded-lg p-8 text-center">
-            <p className="text-muted-foreground">
-              Comments feature coming soon. Stay tuned!
-            </p>
-          </div>
+          <BlogComment blog={blog} />
         </section>
       </article>
     </div>

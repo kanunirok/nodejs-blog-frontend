@@ -130,20 +130,20 @@ export default function Write() {
       }
     } else {
       // Create new blog
-      const response = await blogApi.createBlog({
-        title: title.trim(),
-        description: description.trim(),
-        content: content.trim(),
-        tags,
+    const response = await blogApi.createBlog({
+      title: title.trim(),
+      description: description.trim(),
+      content: content.trim(),
+      tags,
         coverImage: coverImage.trim(),
         status,
-      });
+    });
 
-      if (response.error) {
+    if (response.error) {
         toast.error(response.error);
-        setIsSubmitting(false);
-        return;
-      }
+      setIsSubmitting(false);
+      return;
+    }
 
       if (status === 'published') {
         toast.success('Submitted for Review! Your blog post has been submitted for moderation and will be published after approval.');
@@ -151,11 +151,11 @@ export default function Write() {
         toast.success('Saved as draft! Your blog post has been saved as draft.');
       }
 
-      if (response.data) {
+    if (response.data) {
         navigate(`/blog/${response.data.slug}`);
-      } else {
-        navigate('/my-blogs');
-      }
+    } else {
+      navigate('/my-blogs');
+    }
     }
   };
 
@@ -241,11 +241,11 @@ export default function Write() {
             {/* Title */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Title</label>
-              <Input
-                type="text"
+            <Input
+              type="text"
                 placeholder="Enter your blog title..."
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
                 className={
                   titleError 
                     ? 'border-destructive focus-visible:ring-destructive' 
@@ -270,11 +270,11 @@ export default function Write() {
             {/* Description */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Description</label>
-              <Input
-                type="text"
+            <Input
+              type="text"
                 placeholder="Write a compelling description for your blog post..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
                 className={
                   descriptionError 
                     ? 'border-destructive focus-visible:ring-destructive' 

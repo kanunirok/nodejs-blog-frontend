@@ -22,7 +22,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <RateLimitProvider>
-        <TooltipProvider>
+      <TooltipProvider>
           <ToastContainer
             position="bottom-center"
             autoClose={3500}
@@ -36,7 +36,7 @@ const App = () => (
             theme="dark"
             transition={Slide}
             />
-          <BrowserRouter>
+        <BrowserRouter>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/blog/:slug" element={<BlogDetail />} />

@@ -65,7 +65,7 @@ export function TagInput({ value, onChange, placeholder = 'Type to search or cre
     setShowSuggestions(false);
     // Use setTimeout to ensure focus happens after state updates
     setTimeout(() => {
-      inputRef.current?.focus();
+    inputRef.current?.focus();
     }, 0);
   };
 
