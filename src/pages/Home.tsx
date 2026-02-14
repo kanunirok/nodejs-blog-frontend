@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { blogApi, Blog } from '@/lib/api';
 import { Header } from '@/components/Header';
@@ -10,7 +10,71 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Search, X } from 'lucide-react';
 import { APP_NAME } from '@/lib/appName';
 
+const PAW_BLOCKED_SELECTORS = [
+  'a',
+  'button',
+  'input',
+  'textarea',
+  'select',
+  'label',
+  'summary',
+  'details',
+  '[role="button"]',
+  '[role="link"]',
+  '[role="menuitem"]',
+  '[contenteditable="true"]',
+  '[tabindex]:not([tabindex="-1"])',
+  '[data-no-paw]',
+  'article',
+  'img',
+  'svg',
+  'video',
+  'audio',
+  'iframe',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'p',
+  'span',
+  'strong',
+  'em',
+  'small',
+  'li',
+  'blockquote',
+  'code',
+  'pre',
+].join(', ');
+
+function shouldSkipPaw(target: Element): boolean {
+  if (target.closest(PAW_BLOCKED_SELECTORS)) {
+    return true;
+  }
+
+  const selectedText = window.getSelection()?.toString().trim();
+  return Boolean(selectedText);
+}
+
+function spawnPaw(clientX: number, clientY: number): void {
+  const paw = document.createElement('span');
+  paw.className = 'click-paw-hit';
+  paw.textContent = '🐾';
+  paw.style.left = `${clientX}px`;
+  paw.style.top = `${clientY}px`;
+  paw.style.setProperty('--paw-rotate', `${(Math.random() * 24 - 12).toFixed(2)}deg`);
+  paw.style.setProperty('--paw-scale', (0.9 + Math.random() * 0.16).toFixed(2));
+
+  const cleanup = () => paw.remove();
+  paw.addEventListener('animationend', cleanup, { once: true });
+  window.setTimeout(cleanup, 700);
+
+  document.body.appendChild(paw);
+}
+
 export default function Home() {
+  const rootRef = useRef<HTMLDivElement>(null);
   const [page, setPage] = useState(1);
   const [selectedTag, setSelectedTag] = useState('');
   const [tagSearch, setTagSearch] = useState('');
@@ -61,8 +125,26 @@ export default function Home() {
     }
   };
 
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+
+    const handleClick = (event: MouseEvent) => {
+      if (!(event.target instanceof Element)) return;
+      if (event.detail === 0) return;
+      if (!root.contains(event.target)) return;
+      if (shouldSkipPaw(event.target)) return;
+      spawnPaw(event.clientX, event.clientY);
+    };
+
+    root.addEventListener('click', handleClick, { passive: true });
+    return () => {
+      root.removeEventListener('click', handleClick);
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen bg-background">
+    <div ref={rootRef} className="min-h-screen bg-background">
       <Header />
 
       <main className="mx-auto max-w-5xl px-4 py-10 sm:py-12">
@@ -102,35 +184,8 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="mb-8 grid gap-4 rounded-xl border border-border bg-card/60 p-4 sm:grid-cols-3 sm:p-5">
-          <div className="rounded-lg border border-border/70 bg-background p-4">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              Community
-            </p>
-            <p className="mt-1 font-serif text-xl font-semibold text-foreground">
-              Cat People Only
-            </p>
-          </div>
-          <div className="rounded-lg border border-border/70 bg-background p-4">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              Tone
-            </p>
-            <p className="mt-1 font-serif text-xl font-semibold text-foreground">
-              Cozy and Curious
-            </p>
-          </div>
-          <div className="rounded-lg border border-border/70 bg-background p-4">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              Content
-            </p>
-            <p className="mt-1 font-serif text-xl font-semibold text-foreground">
-              Paws, Purrs, and Stories
-            </p>
-          </div>
-        </section>
-
         {/* Tag Search */}
-        <section className="mb-8">
+        <section className="mb-8" data-no-paw>
           <div className="relative mx-auto max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -159,7 +214,7 @@ export default function Home() {
           </div>
 
           {selectedTag && (
-            <div className="flex items-center justify-center gap-2 mt-4">
+            <div className="mt-4 flex items-center justify-center gap-2">
               <span className="text-sm text-muted-foreground">Filtering by:</span>
               <Badge variant="secondary" className="gap-1">
                 {selectedTag}
@@ -172,7 +227,7 @@ export default function Home() {
         </section>
 
         {/* Blog List */}
-        <section>
+        <section data-no-paw>
           <div className="mb-6 flex items-center justify-between">
             <h2 className="font-serif text-3xl font-semibold tracking-tight text-foreground">
               Latest Cat Chronicles
@@ -196,8 +251,8 @@ export default function Home() {
               ))}
             </div>
           ) : blogs.length === 0 ? (
-            <div className="text-center py-16">
-              <p className="text-muted-foreground text-lg">
+            <div className="py-16 text-center">
+              <p className="text-lg text-muted-foreground">
                 {selectedTag
                   ? `No blogs found with tag "${selectedTag}"`
                   : 'No cat blogs published yet. Be the first to share a meow-ment!'}
@@ -227,6 +282,12 @@ export default function Home() {
           )}
         </section>
       </main>
+
+      <section className="w-full py-5 sm:py-8" aria-label="App Name Footer">
+        <h2 className="select-none px-3 text-center font-sans text-5xl font-extrabold leading-none tracking-tight text-primary sm:px-6 sm:text-7xl md:text-8xl lg:text-[10rem]">
+          {APP_NAME}
+        </h2>
+      </section>
     </div>
   );
 }

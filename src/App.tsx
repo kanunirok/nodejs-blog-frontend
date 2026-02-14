@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { RateLimitProvider } from "@/contexts/RateLimitContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { FloatingCat } from "@/components/FloatingCat";
 import { Bounce, Slide, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Home from "./pages/Home";
@@ -82,6 +83,7 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <FloatingCat />
         </BrowserRouter>
       </TooltipProvider>
       </RateLimitProvider>
