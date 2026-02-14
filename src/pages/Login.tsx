@@ -15,6 +15,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { Eye, EyeOff } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 const loginSchema = z.object({
@@ -26,6 +27,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
@@ -41,10 +43,10 @@ export default function Login() {
   });
 
   const onSubmit = async (data: LoginFormData) => {
-    if (isLoading) return; // Prevent multiple submissions
-    
+    if (isLoading) return;
+
     setIsLoading(true);
-    toast.dismiss(); // Clear any existing toasts
+    toast.dismiss();
 
     const response = await authApi.login({
       email: data.email,
@@ -87,85 +89,91 @@ export default function Login() {
       <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-sm items-center">
         <div className="w-full space-y-7 rounded-2xl border border-border/80 bg-card/90 p-6 shadow-lg backdrop-blur-sm">
           <div className="text-center">
-          <Link to="/" className="inline-block">
-            <h1 className="font-serif text-3xl font-bold text-foreground flex items-center justify-center gap-2">
-              Meowwdium
-              <img
-                src="/paws.png"
-                alt="Meowwdium"
-                className="paw-wiggle inline-block h-8 w-8 align-middle"
+            <Link to="/" className="inline-block">
+              <h1 className="flex items-center justify-center gap-2 font-serif text-3xl font-bold text-foreground">
+                Meowwdium
+                <img
+                  src="/paws.png"
+                  alt="Meowwdium"
+                  className="paw-wiggle inline-block h-8 w-8 align-middle"
+                />
+              </h1>
+            </Link>
+            <h2 className="mt-6 text-2xl font-semibold text-foreground">Welcome back, hooman</h2>
+            <p className="mt-2 text-muted-foreground">
+              Sign in and continue your purr-sonal blogging journey.
+            </p>
+          </div>
+
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="you@example.com"
+                        autoComplete="email"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </h1>
-          </Link>
-          <h2 className="mt-6 text-2xl font-semibold text-foreground">Welcome back, hooman</h2>
-          <p className="mt-2 text-muted-foreground">
-            Sign in and continue your purr-sonal blogging journey.
-          </p>
-          <p className="mt-2 text-xs text-muted-foreground/90">
-            Funny rule: no laser-pointer passwords allowed.
-          </p>
-        </div>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="you@example.com"
-                      autoComplete="email"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="flex items-center justify-between">
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
                     <FormLabel>Password</FormLabel>
-                    <Link 
-                      to="/forgot-password" 
-                      className="text-sm text-primary hover:underline"
-                    >
-                      Forgot password?
-                    </Link>
-                  </div>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="••••••••"
-                      autoComplete="current-password"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type={showPassword ? 'text' : 'password'}
+                          placeholder="••••••••"
+                          autoComplete="current-password"
+                          className="pr-10"
+                          {...field}
+                        />
+                        <button
+                          type="button"
+                          className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
+                          onClick={() => setShowPassword((prev) => !prev)}
+                          aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Signing in...' : 'Sign in'}
-            </Button>
-          </form>
-        </Form>
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? 'Signing in...' : 'Sign in'}
+              </Button>
+            </form>
+          </Form>
 
-        <p className="text-center text-sm text-muted-foreground">
-          Don't have an account?{' '}
-          <Link to="/register" className="font-medium text-primary hover:underline">
-            Create one
-          </Link>
-        </p>
+          <div className="text-center">
+            <Link to="/forgot-password" className="text-sm text-primary hover:underline">
+              Forgot password?
+            </Link>
+          </div>
+
+          <p className="text-center text-sm text-muted-foreground">
+            Don't have an account?{' '}
+            <Link to="/register" className="font-medium text-primary hover:underline">
+              Create one
+            </Link>
+          </p>
         </div>
       </div>
     </div>
